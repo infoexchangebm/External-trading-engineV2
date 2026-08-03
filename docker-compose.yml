@@ -1,20 +1,36 @@
-version: '3.8'
+# Full local stack: Postgres + Redis + Express API + Python signal engine + dashboard.
+#
+# Notes:
+#  * `version:` is obsolete in Compose v2 and has been removed.
+#  * Every service now builds from the Dockerfile that actually matches its
+#    runtime (the Node services previously built the Python image).
+#  * Databases are not published to the host by default - uncomment the port
+#    mappings only when you need direct access from your workstation.
+
+name: algo-signal-engine
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 services:
   postgres:
     image: postgres:16-alpine
     container_name: algo_postgres
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-trading}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trading_secret}
       POSTGRES_DB: ${POSTGRES_DB:-trading_engine}
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trading}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trading} -d ${POSTGRES_DB:-trading_engine}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,8 +39,10 @@ services:
     image: redis:7-alpine
     container_name: algo_redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    logging: *default-logging
+    command: ["redis-server", "--appendonly", "yes"]
+    # ports:
+    #   - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -36,40 +54,82 @@ services:
   api-server:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/api-server.Dockerfile
     container_name: algo_api_server
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "${API_PORT:-8080}:8080"
     environment:
       PORT: 8080
+      NODE_ENV: ${NODE_ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
       DATABASE_URL: postgres://${POSTGRES_USER:-trading}:${POSTGRES_PASSWORD:-trading_secret}@postgres:5432/${POSTGRES_DB:-trading_engine}
       REDIS_URL: redis://redis:6379
-      NODE_ENV: production
+      API_KEY: ${API_KEY:?set API_KEY in your .env before starting the stack}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:24212}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-120}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
+      MAX_DAILY_LOSS_USD: ${MAX_DAILY_LOSS_USD:-1000}
+      MAX_WEEKLY_LOSS_USD: ${MAX_WEEKLY_LOSS_USD:-3000}
+      MAX_POSITION_SIZE_USD: ${MAX_POSITION_SIZE_USD:-50000}
+      MAX_TRADES_PER_HOUR: ${MAX_TRADES_PER_HOUR:-10}
+      TRADINGVIEW_WEBHOOK_URL: ${TRADINGVIEW_WEBHOOK_URL:-}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/healthz"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/api/healthz"]
       interval: 15s
       timeout: 5s
       retries: 3
+      start_period: 20s
 
-  trading-engine-ui:
+  signal-engine:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: algo_signal_engine
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      api-server:
+        condition: service_started
+    ports:
+      - "${ENGINE_PORT:-8000}:8000"
+    environment:
+      PORT: 8000
+      ENV: ${ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      API_KEY: ${API_KEY:?set API_KEY in your .env before starting the stack}
+      SYMBOLS: ${SYMBOLS:-BTCUSDT,ETHUSDT}
+      SCAN_INTERVAL_MINUTES: ${SCAN_INTERVAL_MINUTES:-15}
+      SIGNAL_THRESHOLD: ${SIGNAL_THRESHOLD:-0.4}
+      DRY_RUN: ${DRY_RUN:-false}
+      FRED_API_KEY: ${FRED_API_KEY:-}
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY:-}
+      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY:-}
+      TRADINGVIEW_WEBHOOK_URL: ${TRADINGVIEW_WEBHOOK_URL:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:24212}
+    volumes:
+      - engine_logs:/app/logs
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/dashboard.Dockerfile
     container_name: algo_dashboard_ui
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
-      - api-server
+      api-server:
+        condition: service_healthy
     ports:
-      - "24212:24212"
-    environment:
-      VITE_API_URL: http://api-server:8080
+      - "${UI_PORT:-24212}:24212"
 
 volumes:
   postgres_data:
   redis_data:
+  engine_logs:
