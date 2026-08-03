@@ -1,0 +1,70 @@
+name: Feature Request
+description: Propose a new feature or enhancement for the Algo Signal Engine / External Trading Engine
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an improvement. Please be specific — feature
+        requests that touch signal generation, risk limits, or broker
+        execution should explain the risk implications.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      description: Which part of the system would this change?
+      options:
+        - Express API server (artifacts/api-server)
+        - Python signal service (app/, run.py)
+        - React dashboard (artifacts/trading-engine)
+        - Mobile app (artifacts/signal-mobile)
+        - Broker adapter / MT5 bridge
+        - Risk engine
+        - Database / Drizzle schema
+        - Docker / deployment / CI
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem does this solve? What's missing or painful today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the feature or change you'd like to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative approaches you considered and why you didn't choose them.
+    validations:
+      required: false
+
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk / safety implications
+      description: If this touches signal generation, the risk engine, or broker execution, describe the impact and any safeguards needed.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true

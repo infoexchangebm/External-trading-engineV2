@@ -20,15 +20,19 @@ import {
   useGetScannerRvol,
   useGetScannerMomentum,
   useGetScannerOptionsFlow,
+  useGetConfig,
 } from '@workspace/api-client-react';
 
 export default function ScannerScreen() {
   const colors = useColors();
 
+  const { data: config } = useGetConfig();
+  const stockSymbol = config?.symbols?.find((s) => !s.endsWith('USDT') && !s.endsWith('USD')) ?? 'AAPL';
+
   const { data: news, isLoading: newsLoading, refetch: refetchNews, isRefetching: newsRefetching } = useGetScannerNews();
   const { data: rvol, refetch: refetchRvol } = useGetScannerRvol();
   const { data: momentum, refetch: refetchMomentum } = useGetScannerMomentum();
-  const { data: options, refetch: refetchOptions } = useGetScannerOptionsFlow();
+  const { data: optionsFlow, refetch: refetchOptions } = useGetScannerOptionsFlow({ symbol: stockSymbol });
 
   const isRefreshing = newsRefetching;
 
@@ -196,9 +200,9 @@ export default function ScannerScreen() {
                     >
                       {(item.changePercent ?? 0) >= 0 ? '+' : ''}{item.changePercent?.toFixed(2)}%
                     </Text>
-                    {item.float != null && (
+                    {item.floatMillions != null && (
                       <Text style={[styles.momFloat, { color: colors.mutedForeground }]}>
-                        {(item.float / 1e6).toFixed(1)}M float
+                        {item.floatMillions.toFixed(1)}M float
                       </Text>
                     )}
                   </View>
@@ -212,33 +216,25 @@ export default function ScannerScreen() {
 
         {/* Options pressure */}
         <SectionHeader title="Options Pressure" subtitle="Zero-DTE put/call ratio via Polygon.io" style={[styles.section, { marginTop: 24 }]} />
-        {options && options.length > 0 ? (
+        {optionsFlow ? (
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            {options.map((item: any, i: number) => (
-              <View
-                key={item.symbol}
-                style={[
-                  styles.optRow,
-                  i < options.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border },
-                ]}
-              >
-                <Text style={[styles.optSym, { color: colors.foreground }]}>{item.symbol}</Text>
-                {item.error ? (
-                  <Text style={[styles.unavailText, { color: colors.mutedForeground }]} numberOfLines={2}>
-                    {item.error}
-                  </Text>
-                ) : (
-                  <View style={styles.optRight}>
-                    {item.lean && <SignalBadge signal={item.lean} size="sm" />}
-                    {item.putCallRatio != null && (
-                      <Text style={[styles.optRatio, { color: colors.mutedForeground }]}>
-                        P/C {item.putCallRatio.toFixed(2)}
-                      </Text>
-                    )}
-                  </View>
-                )}
-              </View>
-            ))}
+            <View style={styles.optRow}>
+              <Text style={[styles.optSym, { color: colors.foreground }]}>{optionsFlow.symbol}</Text>
+              {optionsFlow.note ? (
+                <Text style={[styles.unavailText, { color: colors.mutedForeground }]} numberOfLines={2}>
+                  {optionsFlow.note}
+                </Text>
+              ) : (
+                <View style={styles.optRight}>
+                  {optionsFlow.sentiment && <SignalBadge signal={optionsFlow.sentiment} size="sm" />}
+                  {optionsFlow.putCallRatio != null && (
+                    <Text style={[styles.optRatio, { color: colors.mutedForeground }]}>
+                      P/C {optionsFlow.putCallRatio.toFixed(2)}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
           </View>
         ) : (
           <EmptyState icon="layers" message="Add POLYGON_API_KEY for options pressure data" colors={colors} />

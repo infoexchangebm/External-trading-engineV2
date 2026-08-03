@@ -1,5 +1,15 @@
 import { useCallback, useState } from "react";
-import { useGetScannerNews, useGetScannerRvol, useGetScannerMomentum, useGetScannerOptionsFlow, useGetConfig } from "@workspace/api-client-react";
+import {
+  useGetScannerNews,
+  useGetScannerRvol,
+  useGetScannerMomentum,
+  useGetScannerOptionsFlow,
+  useGetConfig,
+  getGetScannerNewsQueryKey,
+  getGetScannerRvolQueryKey,
+  getGetScannerMomentumQueryKey,
+  getGetScannerOptionsFlowQueryKey,
+} from "@workspace/api-client-react";
 import { RefreshCw, Newspaper, BarChart2, TrendingUp, Activity, ExternalLink, AlertTriangle, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -109,10 +119,22 @@ export default function Scanner() {
 
   const refetchInterval = 5 * 60 * 1000; // 5 min auto-refresh
 
-  const newsQ = useGetScannerNews({ symbols: symbolsParam }, { query: { refetchInterval, enabled: !!symbolsParam } });
-  const rvolQ = useGetScannerRvol({ symbols: symbolsParam }, { query: { refetchInterval, enabled: !!symbolsParam } });
-  const momQ = useGetScannerMomentum({ symbols: symbolsParam }, { query: { refetchInterval, enabled: !!symbolsParam } });
-  const optQ = useGetScannerOptionsFlow({ symbol: stockSymbol }, { query: { refetchInterval, enabled: !!stockSymbol } });
+  const newsQ = useGetScannerNews(
+    { symbols: symbolsParam },
+    { query: { queryKey: getGetScannerNewsQueryKey({ symbols: symbolsParam }), refetchInterval, enabled: !!symbolsParam } }
+  );
+  const rvolQ = useGetScannerRvol(
+    { symbols: symbolsParam },
+    { query: { queryKey: getGetScannerRvolQueryKey({ symbols: symbolsParam }), refetchInterval, enabled: !!symbolsParam } }
+  );
+  const momQ = useGetScannerMomentum(
+    { symbols: symbolsParam },
+    { query: { queryKey: getGetScannerMomentumQueryKey({ symbols: symbolsParam }), refetchInterval, enabled: !!symbolsParam } }
+  );
+  const optQ = useGetScannerOptionsFlow(
+    { symbol: stockSymbol },
+    { query: { queryKey: getGetScannerOptionsFlowQueryKey({ symbol: stockSymbol }), refetchInterval, enabled: !!stockSymbol } }
+  );
 
   const scanning = newsQ.isFetching || rvolQ.isFetching || momQ.isFetching || optQ.isFetching;
 
@@ -220,7 +242,7 @@ export default function Scanner() {
                     <span className="font-mono text-sm font-semibold">{entry.symbol}</span>
                     <RvolBadge signal={entry.signal} />
                   </div>
-                  {entry.rvol !== null ? (
+                  {entry.rvol != null ? (
                     <>
                       <div className="flex items-end gap-1 mb-2">
                         <span className="text-2xl font-mono font-bold">{entry.rvol.toFixed(2)}<span className="text-sm font-normal text-muted-foreground">×</span></span>
@@ -276,11 +298,11 @@ export default function Scanner() {
                       {entry.meetsAll ? "✓ PASS" : "✗ FAIL"}
                     </span>
                   </div>
-                  {entry.price !== null ? (
+                  {entry.price != null ? (
                     <>
                       <div className="flex items-baseline gap-3 mb-2">
                         <span className="text-xl font-mono font-bold">${entry.price.toFixed(2)}</span>
-                        {entry.changePercent !== null && (
+                        {entry.changePercent != null && (
                           <span className={cn("text-sm font-mono", entry.changePercent >= 0 ? "text-success" : "text-destructive")}>
                             {entry.changePercent >= 0 ? "+" : ""}{entry.changePercent.toFixed(2)}%
                           </span>
@@ -325,7 +347,7 @@ export default function Scanner() {
                 <SentimentBadge sentiment={optQ.data.sentiment} />
               </div>
 
-              {optQ.data.putCallRatio !== null ? (
+              {optQ.data.putCallRatio != null ? (
                 <>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1 mono-data uppercase">Put / Call Ratio</p>

@@ -1,11 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, ViewStyle, StyleProp } from 'react-native';
 import { useColors } from '@/hooks/useColors';
 
 interface SectionHeaderProps {
   title: string;
   subtitle?: string;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function SectionHeader({ title, subtitle, style }: SectionHeaderProps) {

@@ -15,7 +15,7 @@ async function getDefaultSymbols(): Promise<string[]> {
     const rows = await db.select().from(engineConfigTable).limit(1);
     const row = rows[0];
     if (row?.symbols) {
-      const parsed = row.symbols.split(",").map((s) => s.trim()).filter(Boolean);
+      const parsed = row.symbols.split(",").map((s: string) => s.trim()).filter(Boolean);
       if (parsed.length > 0) return parsed;
     }
   } catch {}

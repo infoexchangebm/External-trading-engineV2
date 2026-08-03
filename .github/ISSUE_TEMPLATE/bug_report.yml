@@ -1,0 +1,102 @@
+name: Bug Report
+description: Report a bug in the Algo Signal Engine / External Trading Engine
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+
+        **If this bug involves a security vulnerability (e.g. authentication
+        bypass, secrets exposure, risk-engine bypass), do not file it here.**
+        Follow the process in [`SECURITY.md`](../../SECURITY.md) instead.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      description: Which part of the system is affected?
+      options:
+        - Express API server (artifacts/api-server)
+        - Python signal service (app/, run.py)
+        - React dashboard (artifacts/trading-engine)
+        - Mobile app (artifacts/signal-mobile)
+        - Broker adapter / MT5 bridge
+        - Risk engine
+        - Database / Drizzle schema
+        - Docker / deployment
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the behavior?
+      placeholder: |
+        1. Start the API server with ...
+        2. Call `POST /api/...` with ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include error messages, stack traces, or logs (redact secrets and API keys).
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      description: Git commit SHA or branch you're running.
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Node.js version, Python version, Docker vs. local, broker adapter in use, etc.
+      placeholder: |
+        - OS:
+        - Node.js version:
+        - Python version:
+        - Deployment: Docker Compose / local pnpm+venv
+        - Broker adapter: paper / oanda / binance / deriv / icmarkets_fix / mt5
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: This is not a security vulnerability (see SECURITY.md if it is).
+          required: true
+        - label: I did not include real API keys, secrets, or broker credentials in this report.
+          required: true

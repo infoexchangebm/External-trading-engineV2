@@ -44,10 +44,10 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     if (!config) return;
-    setSymbols(config.symbols ?? '');
+    setSymbols((config.symbols ?? []).join(', '));
     setWebhookUrl(config.tradingViewWebhookUrl ?? '');
-    setAutoSend(config.autoSendToTradingView ?? false);
-    setThreshold(config.confidenceThreshold ?? 0.6);
+    setAutoSend(config.autoSendEnabled ?? false);
+    setThreshold(config.signalThreshold ?? 0.6);
     setMacroWeight(config.macroWeight ?? 0.25);
     setOrderbookWeight(config.orderbookWeight ?? 0.30);
     setEarningsWeight(config.earningsWeight ?? 0.15);
@@ -57,10 +57,10 @@ export default function SettingsScreen() {
   function save() {
     updateConfig({
       data: {
-        symbols,
+        symbols: symbols.split(',').map((s) => s.trim()).filter(Boolean),
         tradingViewWebhookUrl: webhookUrl,
-        autoSendToTradingView: autoSend,
-        confidenceThreshold: threshold,
+        autoSendEnabled: autoSend,
+        signalThreshold: threshold,
         macroWeight,
         orderbookWeight,
         earningsWeight,

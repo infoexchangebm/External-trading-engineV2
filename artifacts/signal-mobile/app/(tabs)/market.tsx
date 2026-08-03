@@ -39,12 +39,11 @@ export default function MarketScreen() {
 
   const macroRows = macro
     ? [
-        { label: 'Fed Stance', value: macro.fedStance ?? 'N/A' },
+        { label: 'Fed Stance', value: macro.fedSignal ?? 'N/A' },
         { label: 'VIX', value: macro.vix != null ? macro.vix.toFixed(2) : 'N/A' },
-        { label: 'Inflation', value: macro.inflation != null ? `${macro.inflation.toFixed(2)}%` : 'N/A' },
-        { label: 'CPI', value: macro.cpi != null ? macro.cpi.toFixed(2) : 'N/A' },
-        { label: 'GDP Growth', value: macro.gdpGrowth != null ? `${macro.gdpGrowth.toFixed(2)}%` : 'N/A' },
-        { label: 'Signal', value: macro.signal ?? 'N/A' },
+        { label: 'Inflation', value: macro.inflationSignal ?? 'N/A' },
+        { label: 'CPI', value: macro.cpi != null && !Number.isNaN(parseFloat(macro.cpi)) ? parseFloat(macro.cpi).toFixed(2) : (macro.cpi ?? 'N/A') },
+        { label: 'GDP', value: macro.gdp != null && !Number.isNaN(parseFloat(macro.gdp)) ? parseFloat(macro.gdp).toFixed(2) : (macro.gdp ?? 'N/A') },
       ]
     : [];
 
@@ -116,7 +115,7 @@ export default function MarketScreen() {
         )}
 
         {/* Macro */}
-        <SectionHeader title="Macro Climate" subtitle={macro?.lastUpdated ? `Updated: ${new Date(macro.lastUpdated).toLocaleTimeString()}` : undefined} style={[styles.section, { marginTop: 24 }]} />
+        <SectionHeader title="Macro Climate" subtitle={macro?.updatedAt ? `Updated: ${new Date(macro.updatedAt).toLocaleTimeString()}` : undefined} style={[styles.section, { marginTop: 24 }]} />
         {macroRows.length > 0 ? (
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {macroRows.map((row, i) => (
@@ -128,7 +127,7 @@ export default function MarketScreen() {
                 ]}
               >
                 <Text style={[styles.macroLabel, { color: colors.mutedForeground }]}>{row.label}</Text>
-                {row.label === 'Signal' || row.label === 'Fed Stance' ? (
+                {row.label === 'Inflation' || row.label === 'Fed Stance' ? (
                   <SignalBadge signal={row.value} size="sm" />
                 ) : (
                   <Text style={[styles.macroValue, { color: colors.foreground }]}>{row.value}</Text>
