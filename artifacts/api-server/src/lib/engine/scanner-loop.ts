@@ -76,7 +76,7 @@ class ScannerLoopManager {
       // 1. Fetch engine configuration from Postgres DB
       const [config] = await db.select().from(engineConfigTable).limit(1);
       const symbolsStr = config?.symbols || "BTCUSDT,ETHUSDT,AAPL";
-      const symbols = symbolsStr.split(",").map((s) => s.trim()).filter(Boolean);
+      const symbols = symbolsStr.split(",").map((s: string) => s.trim()).filter(Boolean);
 
       const weights = config
         ? {
