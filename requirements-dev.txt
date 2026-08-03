@@ -1,0 +1,9 @@
+-r requirements.txt
+
+# Test + quality tooling
+pytest==8.3.5
+pytest-asyncio==0.25.3
+pytest-cov==6.0.0
+ruff==0.9.7
+mypy==1.15.0
+types-python-dateutil==2.9.0.20241206
