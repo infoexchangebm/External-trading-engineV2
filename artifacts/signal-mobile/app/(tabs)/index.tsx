@@ -18,12 +18,15 @@ import {
   useGetMacroData,
   useGetOrderbook,
   useHealthCheck,
+  getHealthCheckQueryKey,
 } from '@workspace/api-client-react';
 
 export default function DashboardScreen() {
   const colors = useColors();
 
-  const { data: health } = useHealthCheck({ query: { refetchInterval: 30_000 } });
+  const { data: health } = useHealthCheck({
+    query: { queryKey: getHealthCheckQueryKey(), refetchInterval: 30_000 },
+  });
   const {
     data: summary,
     isLoading: sumLoading,
@@ -153,10 +156,11 @@ export default function DashboardScreen() {
           <>
             <SectionHeader title="Macro Climate" style={[styles.section, { marginTop: 24 }]} />
             <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <MacroRow label="Fed Stance" value={macro.fedStance} colors={colors} />
+              <MacroRow label="Fed Stance" value={macro.fedSignal} colors={colors} />
               <MacroRow label="VIX" value={macro.vix != null ? macro.vix.toFixed(2) : 'N/A'} colors={colors} border />
-              <MacroRow label="Inflation" value={macro.inflation != null ? `${macro.inflation.toFixed(2)}%` : 'N/A'} colors={colors} border />
-              <MacroRow label="GDP Growth" value={macro.gdpGrowth != null ? `${macro.gdpGrowth.toFixed(2)}%` : 'N/A'} colors={colors} border last />
+              <MacroRow label="Inflation" value={macro.inflationSignal ?? 'N/A'} colors={colors} border />
+              <MacroRow label="CPI" value={macro.cpi ?? 'N/A'} colors={colors} border />
+              <MacroRow label="GDP" value={macro.gdp ?? 'N/A'} colors={colors} border last />
             </View>
           </>
         )}

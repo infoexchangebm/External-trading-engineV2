@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, ViewStyle, StyleProp } from 'react-native';
 import { useColors } from '@/hooks/useColors';
 
 interface MetricCardProps {
@@ -7,7 +7,7 @@ interface MetricCardProps {
   value: string | number;
   sub?: string;
   accent?: 'default' | 'success' | 'danger' | 'warning' | 'primary';
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function MetricCard({ label, value, sub, accent = 'default', style }: MetricCardProps) {
