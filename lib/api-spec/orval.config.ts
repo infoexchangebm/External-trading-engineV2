@@ -29,6 +29,14 @@ export default defineConfig({
       baseUrl: "/api",
       clean: true,
       override: {
+        // Orval infers the TanStack Query major from the package.json next to
+        // this config, and `@workspace/api-spec` does not depend on
+        // @tanstack/react-query. Without this it falls back to v4 codegen and
+        // emits non-partial `UseQueryOptions`, which makes `queryKey` required
+        // at every call site even though the generated hooks default it.
+        query: {
+          version: 5,
+        },
         fetch: {
           includeHttpResponseReturnType: false,
         },
