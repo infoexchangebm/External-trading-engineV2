@@ -10,6 +10,7 @@ import {
   ScanSearch
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -69,6 +70,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <span className="w-2 h-2 rounded-full bg-success"></span>
               API Connected
             </div>
+            <ThemeToggle />
           </div>
         </header>
         <div className="flex-1 overflow-y-auto p-6">

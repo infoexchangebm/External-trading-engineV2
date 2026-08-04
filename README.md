@@ -61,6 +61,7 @@ A full-stack automated trading engine designed to ingest TradingView alerts, nor
 - Displays live signals, macro climate, and orderbook imbalance.
 - Allows manual signal injection and engine configuration.
 - Provides system telemetry (SOC logs, metrics snapshots, scanner health).
+- **Light / dark / system theming** — a switch in the header persists your choice to `localStorage` and follows the OS while set to *System*. The theme is applied before first paint, so reloading in dark mode never flashes white.
 
 ## Architecture
 
@@ -150,11 +151,50 @@ pnpm --filter @workspace/api-server run dev # API server on :8080
 pnpm --filter @workspace/trading-engine run dev # dashboard on :24212
 ```
 
+The dashboard calls the API same-origin at `/api/*`. In development, Vite proxies
+those calls to `http://localhost:8080`; point it elsewhere with
+`API_PROXY_TARGET`. In production the same job is done by `docker/nginx.conf`,
+so the SPA uses relative URLs in both cases.
+
 Regenerate typed API hooks/schemas after editing the OpenAPI spec:
 
 ```bash
 pnpm --filter @workspace/api-spec run codegen
 ```
+
+Codegen pins `query.version: 5` in `lib/api-spec/orval.config.ts`. Orval infers
+the TanStack Query major from the package.json beside its config, and
+`@workspace/api-spec` does not depend on `@tanstack/react-query` — without the
+pin it silently falls back to v4 output and makes `queryKey` mandatory at every
+call site.
+
+#### Building
+
+```bash
+pnpm run typecheck   # every package
+pnpm run build       # typecheck, then build every package
+```
+
+`pnpm run build` includes `@workspace/signal-mobile`, whose build produces a
+hosted Expo Go deployment and therefore needs a public HTTPS domain in
+`EXPO_PUBLIC_DOMAIN` (or a Replit domain) to bake absolute URLs into the Expo
+manifests. To build everything else:
+
+```bash
+pnpm -r --filter "!@workspace/signal-mobile" --if-present run build
+```
+
+#### Platform support
+
+Development is supported on Linux, macOS, and Windows. `pnpm-workspace.yaml`
+excludes native binaries for platforms the project does not target, keeping
+installs small — but `win32-x64` is deliberately kept so Vite/Rollup/Tailwind
+builds work on Windows. These are optional, `os`/`cpu`-gated dependencies, so
+Linux and macOS installs skip them at no cost.
+
+`PORT` and `BASE_PATH` are injected by Replit; elsewhere both Vite configs fall
+back to defaults (dashboard `24212`, mockup sandbox `24213`, base `/`) instead
+of failing, and both still honour the environment variables when set.
 
 ### Option C: Local Python virtual environment (signal service)
 
