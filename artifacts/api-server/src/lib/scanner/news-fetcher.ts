@@ -1,6 +1,8 @@
 /**
  * News & Catalyst Fetcher
- * Sources: Finnhub company/crypto news (free tier) + SEC EDGAR 8-K full-text search (no key)
+ * Sources: Finnhub company/crypto news (free tier) + SEC EDGAR 8-K full-text
+ * search (no key) + openFDA drug events (keyless; OPENFDA_API_KEY optional,
+ * raises the rate limit)
  * Cache: 5 minutes
  */
 
@@ -130,10 +132,13 @@ export async function fetchNews(symbols: string[]): Promise<NewsItem[]> {
       }
     }
 
-    // ── FDA drug events (no key, free) ───────────────────────────────────
+    // ── FDA drug events (keyless, but OPENFDA_API_KEY raises the rate limit) ──
     if (!crypto) {
       try {
-        const fdaUrl = `https://api.fda.gov/drug/event.json?search=patient.drug.openfda.brand_name:"${symbol}"&limit=2&sort=receivedate:desc`;
+        const fdaKey = process.env["OPENFDA_API_KEY"];
+        const fdaUrl =
+          `https://api.fda.gov/drug/event.json?search=patient.drug.openfda.brand_name:"${symbol}"&limit=2&sort=receivedate:desc` +
+          (fdaKey ? `&api_key=${fdaKey}` : "");
         const res = await fetch(fdaUrl, { signal: AbortSignal.timeout(6000) });
         if (res.ok) {
           const data = (await res.json()) as Record<string, any>;

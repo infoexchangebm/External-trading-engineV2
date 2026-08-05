@@ -243,6 +243,8 @@ Copy `.env.example` to `.env` and configure as needed. Variables below are read 
 | `FRED_API_KEY` | Macro data | _(optional)_ | FRED macroeconomic data |
 | `ALPHAVANTAGE_API_KEY` | Macro/technical data | _(optional)_ | Alpha Vantage market data |
 | `FINNHUB_API_KEY` | Earnings/scanner data | _(optional)_ | Finnhub earnings calendar and news |
+| `POLYGON_API_KEY` | Scanner data | _(optional)_ | Polygon.io options snapshot for the zero-DTE put/call sentiment scanner |
+| `OPENFDA_API_KEY` | Scanner data | _(optional)_ | openFDA drug-event feed works keyless; this only raises the rate limit |
 | `OANDA_API_KEY` / `OANDA_ACCOUNT_ID` | Broker adapter | _(optional)_ | OANDA broker credentials |
 | `BINANCE_API_KEY` / `BINANCE_SECRET` | Broker adapter, price data | _(optional)_ | Binance credentials (klines fetch works without keys for public data) |
 | `DERIV_APP_ID` | Broker adapter | _(optional)_ | Deriv broker app ID |

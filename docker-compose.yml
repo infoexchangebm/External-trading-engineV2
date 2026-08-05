@@ -80,6 +80,14 @@ services:
       MAX_POSITION_SIZE_USD: ${MAX_POSITION_SIZE_USD:-50000}
       MAX_TRADES_PER_HOUR: ${MAX_TRADES_PER_HOUR:-10}
       TRADINGVIEW_WEBHOOK_URL: ${TRADINGVIEW_WEBHOOK_URL:-}
+      # Scanner/macro data providers - the Node scanner subsystem
+      # (news, rvol, momentum, options-flow) and macro fetcher read these
+      # directly; without them each source degrades to its keyless fallback.
+      FRED_API_KEY: ${FRED_API_KEY:-}
+      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY:-}
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY:-}
+      POLYGON_API_KEY: ${POLYGON_API_KEY:-}
+      OPENFDA_API_KEY: ${OPENFDA_API_KEY:-}
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/api/healthz"]
       interval: 15s
