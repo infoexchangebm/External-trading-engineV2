@@ -53,24 +53,21 @@ export async function fetchMacroData(): Promise<MacroResult> {
     } catch (err) {
       logger.warn({ err }, "FRED CPI fetch failed");
     }
-  }
 
-  // VIX from Alpha Vantage if key is set
-  const avKey = process.env["ALPHAVANTAGE_API_KEY"];
-  if (avKey) {
     try {
-      const vixUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=VIX&apikey=${avKey}&outputsize=compact`;
+      // VIX. VIXCLS is the CBOE Volatility Index itself. Alpha Vantage cannot
+      // serve it — VIX is an index, not a listed equity, and
+      // TIME_SERIES_DAILY?symbol=VIX returns "Invalid API call".
+      const vixUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=VIXCLS&api_key=${fredApiKey}&file_type=json&limit=10&sort_order=desc`;
       const vixRes = await fetch(vixUrl, { signal: AbortSignal.timeout(5000) });
       if (vixRes.ok) {
-        const vixData = await vixRes.json() as { "Time Series (Daily)"?: Record<string, { "4. close": string }> };
-        const series = vixData["Time Series (Daily)"];
-        if (series) {
-          const latestDate = Object.keys(series).sort().reverse()[0];
-          result.vix = parseFloat(series[latestDate]?.["4. close"] ?? "0");
-        }
+        const vixData = await vixRes.json() as { observations?: { value: string }[] };
+        // FRED reports market holidays as "." — take the most recent numeric close
+        const latest = vixData.observations?.find((o) => parseFloat(o.value) > 0);
+        if (latest) result.vix = parseFloat(latest.value);
       }
     } catch (err) {
-      logger.warn({ err }, "VIX fetch failed");
+      logger.warn({ err }, "FRED VIX fetch failed");
     }
   }
 

@@ -17,10 +17,10 @@ export async function fetchMacroData(): Promise<MacroMetrics> {
   let sourcesCount = 0;
   let successfulSources = 0;
 
-  // Source 1: FRED API for GDP & CPI
+  // Source 1: FRED API for GDP, CPI & VIX
   const fredApiKey = process.env["FRED_API_KEY"];
   if (fredApiKey) {
-    sourcesCount += 2;
+    sourcesCount += 3;
     try {
       const gdpUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=GDP&api_key=${fredApiKey}&file_type=json&limit=1&sort_order=desc`;
       const res = await fetch(gdpUrl, { signal: AbortSignal.timeout(5000) });
@@ -54,26 +54,24 @@ export async function fetchMacroData(): Promise<MacroMetrics> {
     } catch (err) {
       logger.warn({ err }, "FRED CPI fetch failed");
     }
-  }
 
-  // Source 2: VIX index via Alpha Vantage
-  const avKey = process.env["ALPHAVANTAGE_API_KEY"];
-  if (avKey) {
-    sourcesCount++;
+    // VIXCLS is the CBOE Volatility Index itself, so the thresholds below compare
+    // against real index levels. Alpha Vantage cannot serve it — VIX is an index,
+    // not a listed equity, and TIME_SERIES_DAILY?symbol=VIX returns "Invalid API call".
     try {
-      const vixUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=VIX&apikey=${avKey}&outputsize=compact`;
+      const vixUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=VIXCLS&api_key=${fredApiKey}&file_type=json&limit=10&sort_order=desc`;
       const res = await fetch(vixUrl, { signal: AbortSignal.timeout(5000) });
       if (res.ok) {
-        const data = (await res.json()) as { "Time Series (Daily)"?: Record<string, { "4. close": string }> };
-        const series = data["Time Series (Daily)"];
-        if (series) {
-          const latestDate = Object.keys(series).sort().reverse()[0];
-          vix = parseFloat(series[latestDate]?.["4. close"] ?? "0");
-          if (vix > 0) successfulSources++;
+        const data = (await res.json()) as { observations?: { value: string }[] };
+        // FRED reports market holidays as "." — take the most recent numeric close
+        const latest = data.observations?.find((o) => parseFloat(o.value) > 0);
+        if (latest) {
+          vix = parseFloat(latest.value);
+          successfulSources++;
         }
       }
     } catch (err) {
-      logger.warn({ err }, "Alpha Vantage VIX fetch failed");
+      logger.warn({ err }, "FRED VIX fetch failed");
     }
   }
 
@@ -84,7 +82,7 @@ export async function fetchMacroData(): Promise<MacroMetrics> {
   if (fedSignal === "DOVISH") riskOnScore += 0.5;
   else if (fedSignal === "HAWKISH") riskOnScore -= 0.5;
 
-  // VIX impact (VIX < 20 is Risk-On, VIX > 30 is Risk-Off / Fear)
+  // VIX impact (VIX < 18 is Risk-On, VIX > 28 is Risk-Off / Fear)
   if (vix !== null && vix > 0) {
     if (vix < 18) riskOnScore += 0.5;
     else if (vix > 28) riskOnScore -= 0.5;

@@ -1,6 +1,8 @@
 /**
  * Zero-DTE Options Pressure
- * Source: Polygon.io options snapshot (free tier — set POLYGON_API_KEY)
+ * Source: Polygon.io options snapshot (set POLYGON_API_KEY). Note that options
+ * snapshots are NOT part of Polygon's free tier — they need a paid options
+ * subscription. A free-tier key authenticates fine and then 403s here.
  * Computes put/call ratio to determine market lean (BEARISH/BULLISH/NEUTRAL)
  * P/C > 1.2 = BEARISH, P/C < 0.7 = BULLISH
  * Cache: 5 minutes
@@ -78,7 +80,7 @@ export async function fetchOptionsFlow(symbol: string): Promise<OptionsFlow> {
     const result: OptionsFlow = {
       symbol, expiration: null, putVolume: null, callVolume: null,
       putCallRatio: null, sentiment: "UNAVAILABLE", totalOpenInterest: null,
-      note: "Add POLYGON_API_KEY (free tier at polygon.io) to enable options flow",
+      note: "Add POLYGON_API_KEY (paid options subscription required) to enable options flow",
       updatedAt,
     };
     optionsCache.set(symbol, { data: result, ts: Date.now() });
@@ -104,10 +106,16 @@ export async function fetchOptionsFlow(symbol: string): Promise<OptionsFlow> {
     }
 
     if (res.status === 403 || res.status === 401) {
+      // 401 = the key itself was rejected. 403 = the key is valid but the plan
+      // carries no options entitlement — don't send anyone hunting for a bad key.
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
       const result: OptionsFlow = {
         symbol, expiration: null, putVolume: null, callVolume: null,
         putCallRatio: null, sentiment: "UNAVAILABLE", totalOpenInterest: null,
-        note: "Polygon API key invalid or insufficient permissions",
+        note:
+          res.status === 401
+            ? "Polygon rejected POLYGON_API_KEY (401) — check the key value"
+            : `Polygon plan has no options entitlement (403); the key itself is valid. ${body?.message ?? "Upgrade to a paid options subscription."}`,
         updatedAt,
       };
       optionsCache.set(symbol, { data: result, ts: Date.now() });
