@@ -1,12 +1,11 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { 
-  LayoutDashboard, 
-  Activity, 
-  Database, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Activity,
+  Database,
+  Settings,
   Webhook,
-  TerminalSquare,
   ScanSearch
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,9 +30,16 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <aside className="w-64 border-r border-border bg-sidebar shrink-0 flex flex-col">
-        <div className="h-14 flex items-center px-4 border-b border-border">
-          <TerminalSquare className="w-5 h-5 text-primary mr-2" />
-          <span className="font-bold tracking-tight">ENGINE COCKPIT</span>
+        <div className="h-14 flex items-center px-4 border-b border-border gap-2.5">
+          <img
+            src="/logo-mark.png"
+            alt="External Trading Engine"
+            className="w-8 h-8 rounded-md shrink-0"
+          />
+          <div className="leading-tight min-w-0">
+            <div className="font-bold tracking-tight text-sm truncate">EXTERNAL</div>
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">Trading Engine</div>
+          </div>
         </div>
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {navItems.map((item) => {

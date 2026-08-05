@@ -13,4 +13,6 @@ export const WebhookLogStatus = {
   success: 'success',
   error: 'error',
   received: 'received',
+  executed: 'executed',
+  rejected: 'rejected',
 } as const;

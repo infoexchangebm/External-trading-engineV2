@@ -148,12 +148,20 @@ export const ReceiveTradingViewAlertBody = zod.object({
   "symbol": zod.string(),
   "action": zod.string(),
   "price": zod.number().nullish(),
-  "message": zod.string().nullish()
+  "quantity": zod.number().nullish(),
+  "stopLoss": zod.number().nullish(),
+  "takeProfit": zod.number().nullish(),
+  "message": zod.string().nullish(),
+  "apiKey": zod.string().nullish().describe('Shared secret, since TradingView alert webhooks cannot send custom HTTP headers.')
 })
 
 export const ReceiveTradingViewAlertResponse = zod.object({
   "status": zod.string(),
-  "message": zod.string().nullish()
+  "message": zod.string().nullish(),
+  "tradeId": zod.string().nullish(),
+  "brokerOrderId": zod.string().nullish(),
+  "executedPrice": zod.number().nullish(),
+  "rejectionReason": zod.string().nullish()
 })
 
 
@@ -170,7 +178,11 @@ export const SendSignalToTradingViewBody = zod.object({
 
 export const SendSignalToTradingViewResponse = zod.object({
   "status": zod.string(),
-  "message": zod.string().nullish()
+  "message": zod.string().nullish(),
+  "tradeId": zod.string().nullish(),
+  "brokerOrderId": zod.string().nullish(),
+  "executedPrice": zod.number().nullish(),
+  "rejectionReason": zod.string().nullish()
 })
 
 
@@ -188,7 +200,7 @@ export const ListWebhookLogsResponseItem = zod.object({
   "id": zod.number(),
   "direction": zod.enum(['inbound', 'outbound']),
   "payload": zod.string().describe('JSON-serialized webhook payload'),
-  "status": zod.enum(['success', 'error', 'received']),
+  "status": zod.enum(['success', 'error', 'received', 'executed', 'rejected']),
   "errorMessage": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })

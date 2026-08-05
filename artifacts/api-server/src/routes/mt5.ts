@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { riskEngine } from "../lib/risk/risk-engine.js";
+import { inferAssetClass } from "../lib/risk/infer-asset-class.js";
 import { BrokerFactory } from "../lib/brokers/broker-factory.js";
 import { TradeStateMachine } from "../lib/statemachine/trade-state-machine.js";
 import { socLogger } from "../lib/observability/soc-logger.js";
@@ -36,7 +37,7 @@ router.post("/trade", async (req, res) => {
     action: action.toUpperCase() as "BUY" | "SELL",
     quantity: Number(quantity),
     price: Number(price || 1.1050),
-    assetClass: symbol.includes("XAU") ? "COMMODITIES" : symbol.includes("BTC") ? "CRYPTO" : "FX",
+    assetClass: inferAssetClass(symbol),
   });
 
   if (!riskCheck.passed) {

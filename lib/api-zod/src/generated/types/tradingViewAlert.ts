@@ -12,5 +12,16 @@ export interface TradingViewAlert {
   /** @nullable */
   price?: number | null;
   /** @nullable */
+  quantity?: number | null;
+  /** @nullable */
+  stopLoss?: number | null;
+  /** @nullable */
+  takeProfit?: number | null;
+  /** @nullable */
   message?: string | null;
+  /**
+     * Shared secret, since TradingView alert webhooks cannot send custom HTTP headers.
+     * @nullable
+     */
+  apiKey?: string | null;
 }

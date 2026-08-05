@@ -160,13 +160,32 @@ export interface TradingViewAlert {
   /** @nullable */
   price?: number | null;
   /** @nullable */
+  quantity?: number | null;
+  /** @nullable */
+  stopLoss?: number | null;
+  /** @nullable */
+  takeProfit?: number | null;
+  /** @nullable */
   message?: string | null;
+  /**
+     * Shared secret, since TradingView alert webhooks cannot send custom HTTP headers.
+     * @nullable
+     */
+  apiKey?: string | null;
 }
 
 export interface WebhookAck {
   status: string;
   /** @nullable */
   message?: string | null;
+  /** @nullable */
+  tradeId?: string | null;
+  /** @nullable */
+  brokerOrderId?: string | null;
+  /** @nullable */
+  executedPrice?: number | null;
+  /** @nullable */
+  rejectionReason?: string | null;
 }
 
 export type SendSignalInputFinalSignal = typeof SendSignalInputFinalSignal[keyof typeof SendSignalInputFinalSignal];
@@ -199,6 +218,8 @@ export const WebhookLogStatus = {
   success: 'success',
   error: 'error',
   received: 'received',
+  executed: 'executed',
+  rejected: 'rejected',
 } as const;
 
 export interface WebhookLog {

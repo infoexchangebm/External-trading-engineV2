@@ -465,8 +465,17 @@ components:
           type: string
         price:
           type: ["number", "null"]
+        quantity:
+          type: ["number", "null"]
+        stopLoss:
+          type: ["number", "null"]
+        takeProfit:
+          type: ["number", "null"]
         message:
           type: ["string", "null"]
+        apiKey:
+          type: ["string", "null"]
+          description: Shared secret, since TradingView alert webhooks cannot send custom HTTP headers.
 
     WebhookAck:
       type: object
@@ -475,6 +484,14 @@ components:
         status:
           type: string
         message:
+          type: ["string", "null"]
+        tradeId:
+          type: ["string", "null"]
+        brokerOrderId:
+          type: ["string", "null"]
+        executedPrice:
+          type: ["number", "null"]
+        rejectionReason:
           type: ["string", "null"]
 
     SendSignalInput:
@@ -504,7 +521,7 @@ components:
           description: JSON-serialized webhook payload
         status:
           type: string
-          enum: [success, error, received]
+          enum: [success, error, received, executed, rejected]
         errorMessage:
           type: ["string", "null"]
         createdAt:

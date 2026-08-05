@@ -10,4 +10,12 @@ export interface WebhookAck {
   status: string;
   /** @nullable */
   message?: string | null;
+  /** @nullable */
+  tradeId?: string | null;
+  /** @nullable */
+  brokerOrderId?: string | null;
+  /** @nullable */
+  executedPrice?: number | null;
+  /** @nullable */
+  rejectionReason?: string | null;
 }

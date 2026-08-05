@@ -32,7 +32,11 @@ function extractKey(req: Request): string {
   const header = req.header("x-api-key");
   if (header) return header;
   const auth = req.header("authorization") ?? "";
-  return auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
+  if (auth.toLowerCase().startsWith("bearer ")) return auth.slice(7).trim();
+  // TradingView alert webhooks cannot send custom headers - only a URL and a
+  // JSON body - so accept the same shared secret embedded in the body too.
+  const bodyKey = (req.body as { apiKey?: unknown } | undefined)?.apiKey;
+  return typeof bodyKey === "string" ? bodyKey : "";
 }
 
 export function apiKeyAuth(): RequestHandler {
