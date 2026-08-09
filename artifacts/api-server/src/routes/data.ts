@@ -25,17 +25,17 @@ router.get("/data/macro", async (req, res): Promise<void> => {
 });
 
 router.get("/data/earnings", async (req, res): Promise<void> => {
-  // Static earnings calendar (yfinance not available in Node; use Finnhub if key set)
+  // Finnhub-backed earnings calendar (yfinance not available in Node). No
+  // static fallback list: a hardcoded 4-company sample with fixed dates goes
+  // stale the moment the clock moves past it and lies about who's actually
+  // reporting. An empty array is an honest answer whether there's no key,
+  // the fetch fails, or genuinely nobody in-window is reporting — the
+  // frontend should render "no upcoming earnings" for all three rather than
+  // ever showing fabricated tickers.
   const finnhubKey = process.env["FINNHUB_API_KEY"];
-  const defaultEntries = [
-    { ticker: "AAPL", reportDate: "2025-08-05", epsEstimate: 1.35, epsActual: null, surprise: null, signal: null },
-    { ticker: "MSFT", reportDate: "2025-07-30", epsEstimate: 3.10, epsActual: null, surprise: null, signal: null },
-    { ticker: "GOOGL", reportDate: "2025-07-29", epsEstimate: 2.15, epsActual: null, surprise: null, signal: null },
-    { ticker: "NVDA", reportDate: "2025-08-20", epsEstimate: 0.68, epsActual: null, surprise: null, signal: null },
-  ];
 
   if (!finnhubKey) {
-    res.json(GetEarningsDataResponse.parse(defaultEntries));
+    res.json(GetEarningsDataResponse.parse([]));
     return;
   }
 
@@ -56,9 +56,9 @@ router.get("/data/earnings", async (req, res): Promise<void> => {
       surprise: e.epsActual != null && e.epsEstimate != null ? parseFloat((e.epsActual - e.epsEstimate).toFixed(2)) : null,
       signal: null,
     }));
-    res.json(GetEarningsDataResponse.parse(entries.length > 0 ? entries : defaultEntries));
+    res.json(GetEarningsDataResponse.parse(entries));
   } catch {
-    res.json(GetEarningsDataResponse.parse(defaultEntries));
+    res.json(GetEarningsDataResponse.parse([]));
   }
 });
 

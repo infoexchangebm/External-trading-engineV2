@@ -22,7 +22,12 @@ router.get("/healthz", (_req, res) => {
       },
       scannerLoop: scannerHealth,
       brokerLayer: {
-        activeBrokers: ["paper", "oanda", "binance", "deriv", "icmarkets_fix", "mt5"],
+        // Only "paper" is a real execution path today. The rest are stub
+        // adapters (BrokerFactory returns them, but placeOrder()/etc. never
+        // make a network call and fabricate a FILLED result) — listed
+        // separately so this endpoint stops claiming they're live.
+        activeBrokers: ["paper"],
+        unimplementedBrokers: ["oanda", "binance", "deriv", "icmarkets_fix", "mt5"],
       },
     },
     timestamp: new Date().toISOString(),
