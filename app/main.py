@@ -30,7 +30,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from app.data_sources.earnings import EarningsFetcher
 from app.data_sources.macro import MacroDataFetcher
 from app.data_sources.orderbook import OrderBookFetcher, is_valid_symbol
-from app.data_sources.prices import PriceFetcher
+from app.data_sources.prices import PriceFetcher, push_market_feeds
 from app.models import HealthResponse, SignalResponse, TradingViewAlert
 from app.strategies.engine import StrategyEngine
 from app.tradingview.webhook import send_to_tradingview
@@ -252,6 +252,13 @@ async def fetch_and_process_data(symbols: list[str] | None = None) -> list[dict[
         _macro_cache.update(await MacroDataFetcher().fetch_all())
         orderbook = await OrderBookFetcher().fetch_all(watchlist)
         frames = await price_fetcher.fetch_many(watchlist)
+
+        # Best-effort: persistence must never block signal generation below,
+        # so failures here are swallowed and logged rather than re-raised.
+        try:
+            await push_market_feeds(frames)
+        except Exception:
+            logger.exception("market_feeds persistence failed; continuing scan cycle without it")
 
         for symbol in watchlist:
             signal = await strategy_engine.generate_signal(

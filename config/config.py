@@ -72,6 +72,15 @@ class Settings(BaseSettings):
     tradingview_webhook_url: str = ""
     dry_run: bool = False
 
+    # --- Internal service wiring ------------------------------------------
+    # Node owns Postgres (Drizzle) and exposes it over HTTP; this engine has
+    # no direct DB driver on purpose, to avoid two services independently
+    # knowing the schema. Default matches the docker-compose service name,
+    # reachable by DNS on the default compose network. Same shared secret as
+    # api_key -- the Express server's apiKeyAuth() checks X-API-Key against
+    # one API_KEY value for both.
+    node_api_url: str = "http://api-server:8080"
+
     @field_validator("allowed_ips", "cors_origins", "symbols", "earnings_tickers", mode="before")
     @classmethod
     def _parse_csv(cls, value: Any) -> Any:

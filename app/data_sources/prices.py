@@ -15,7 +15,7 @@ import httpx
 import pandas as pd
 
 from app.data_sources.orderbook import is_valid_symbol
-from app.http import UpstreamError, get_json
+from app.http import UpstreamError, get_json, post_json
 from config.config import settings
 
 logger = logging.getLogger(__name__)
@@ -97,3 +97,54 @@ class PriceFetcher:
                     symbol, interval=interval, limit=limit, client=client
                 )
         return frames
+
+
+async def push_market_feeds(frames: dict[str, pd.DataFrame]) -> None:
+    """Persist the latest *closed* candle per symbol to Node's market_feeds table.
+
+    ``fetch_many`` used to be the whole story: candles were pulled for
+    scoring and then discarded when the process moved on, so there was no
+    price history to look back on later. This is a deliberately separate,
+    best-effort step rather than folded into ``fetch_many`` itself — a
+    persistence failure here must never stop signal generation, and
+    ``fetch_many``'s contract stays "fetch", not "fetch and also write".
+
+    Binance's *last* row is normally the still-forming candle for the
+    current bucket (its close_time hasn't passed yet), so we persist the
+    second-to-last row instead — the most recent bar that's actually done
+    moving. The endpoint dedupes on (symbol, feedType, timestamp): once a
+    closed bar's row has been written, later scan cycles that re-fetch the
+    same window just no-op on it rather than duplicating it.
+    """
+    if not settings.api_key:
+        logger.debug("API_KEY unset - skipping market_feeds persistence")
+        return
+
+    url = f"{settings.node_api_url.rstrip('/')}/api/market-feeds"
+    headers = {"X-API-Key": settings.api_key}
+
+    async with httpx.AsyncClient(timeout=settings.http_timeout_seconds) as client:
+        for symbol, frame in frames.items():
+            if len(frame) < 2:
+                continue
+            closed = frame.iloc[-2]
+            open_time = closed.get("open_time")
+            if pd.isna(open_time):
+                continue
+            body = {
+                "symbol": symbol,
+                "feedType": "CANDLE",
+                "price": float(closed["close"]),
+                "timestamp": open_time.isoformat(),
+                "payload": {
+                    "open": float(closed["open"]),
+                    "high": float(closed["high"]),
+                    "low": float(closed["low"]),
+                    "close": float(closed["close"]),
+                    "volume": float(closed["volume"]),
+                },
+            }
+            try:
+                await post_json(url, json=body, headers=headers, client=client)
+            except UpstreamError as exc:
+                logger.warning("market_feeds persist failed for %s: %s", symbol, exc)

@@ -120,6 +120,9 @@ services:
       FINNHUB_API_KEY: ${FINNHUB_API_KEY:-}
       ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY:-}
       TRADINGVIEW_WEBHOOK_URL: ${TRADINGVIEW_WEBHOOK_URL:-}
+      # Reachable by DNS on the compose network; the fetched-candle feed is
+      # persisted here (POST /api/market-feeds) using the same API_KEY above.
+      NODE_API_URL: http://api-server:8080
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:24212}
     volumes:
       - engine_logs:/app/logs

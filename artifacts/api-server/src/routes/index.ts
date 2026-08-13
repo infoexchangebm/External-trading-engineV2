@@ -10,12 +10,14 @@ import paperRouter from "./paper.js";
 import riskRouter from "./risk.js";
 import observabilityRouter from "./observability.js";
 import backtestRouter from "./backtest.js";
+import marketFeedsRouter from "./market-feeds.js";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(signalsRouter);
 router.use(dataRouter);
+router.use(marketFeedsRouter);
 router.use(webhookRouter);
 router.use(configRouter);
 router.use(scannerRouter);

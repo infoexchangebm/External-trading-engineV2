@@ -64,6 +64,7 @@ router.post("/trade", async (req, res) => {
     type: "MARKET",
     quantity: Number(quantity),
     price: Number(price),
+    clientOrderId: tradeId,
     stopLoss: Number(stopLoss),
     takeProfit: Number(takeProfit),
   });

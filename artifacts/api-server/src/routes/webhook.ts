@@ -122,6 +122,7 @@ router.post("/webhook/tradingview", async (req, res): Promise<void> => {
     type: "MARKET",
     quantity,
     price,
+    clientOrderId: tradeId,
     stopLoss: alert.stopLoss ?? undefined,
     takeProfit: alert.takeProfit ?? undefined,
   });
